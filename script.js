@@ -7,7 +7,26 @@ const statusLine = document.getElementById("statusLine");
 
 let dictionary = [];
 
-/* ---------- Frequency calculator ---------- */
+/* Load dictionary */
+try {
+
+const response = await fetch("/static/dictionary.txt");
+const text = await response.text();
+
+dictionary = text
+.split(/\r?\n/)
+.map(w => w.trim())
+.filter(w => w.length > 0);
+
+console.log("Dictionary loaded:", dictionary.length);
+
+} catch(err) {
+
+console.error("Dictionary failed to load", err);
+
+}
+
+/* Frequency calculator */
 
 function frequency(word){
 
@@ -29,31 +48,7 @@ return freq;
 
 }
 
-/* ---------- Load dictionary once ---------- */
-
-try {
-
-const response = await fetch("/static/dictionary.txt");
-const text = await response.text();
-
-dictionary = text
-.split(/\r?\n/)
-.map(w => w.trim())
-.filter(w => w.length > 0)
-.map(word => ({
-word: word,
-freq: frequency(word)
-}));
-
-console.log("Dictionary loaded:", dictionary.length);
-
-} catch(err){
-
-console.error("Dictionary failed to load", err);
-
-}
-
-/* ---------- Check if letters can form word ---------- */
+/* Check if word can be built */
 
 function canForm(userFreq, wordFreq){
 
@@ -67,7 +62,7 @@ return true;
 
 }
 
-/* ---------- Submit handler ---------- */
+/* Submit event */
 
 form.addEventListener("submit", function(e){
 
@@ -79,19 +74,21 @@ const userFreq = frequency(letters);
 
 let matches = [];
 
-/* scan dictionary */
+/* Scan dictionary */
 
 for(let i=0;i<dictionary.length;i++){
 
-const entry = dictionary[i];
+const word = dictionary[i];
 
-if(canForm(userFreq, entry.freq)){
-matches.push(entry.word);
+const wordFreq = frequency(word);
+
+if(canForm(userFreq, wordFreq)){
+matches.push(word);
 }
 
 }
 
-/* identical ordering as Python */
+/* Python identical sort */
 
 matches.sort(function(a,b){
 
@@ -111,7 +108,7 @@ return 0;
 
 });
 
-/* render results */
+/* Render */
 
 results.innerHTML = "";
 
