@@ -8,6 +8,7 @@ const statusLine = document.getElementById("statusLine");
 let dictionary = [];
 
 /* Load dictionary */
+
 try {
 
 const response = await fetch("/static/dictionary.txt");
@@ -88,7 +89,7 @@ matches.push(word);
 
 }
 
-/* Python identical sort */
+/* Python-style sort */
 
 matches.sort(function(a,b){
 
@@ -118,12 +119,10 @@ const div = document.createElement("div");
 div.className = "anagram-word";
 
 const link = document.createElement("a");
-
 link.href = "#";
 link.textContent = " " + matches[i] + " ";
 
 div.appendChild(link);
-
 results.appendChild(div);
 
 }
