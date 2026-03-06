@@ -1,24 +1,57 @@
-const CACHE = "anagram-cache-v1";
+const CACHE_NAME = "anagram-v2";
 
-self.addEventListener("install", e => {
+/* files required for the app */
 
-self.skipWaiting();
+const CORE_ASSETS = [
+"/",
+"/index.html",
+"/script.js",
+"/manifest.json",
+"/static/dictionary.txt",
+"/static/icon-192.png",
+"/static/icon-512.png",
+"/static/images/lklogo.png"
+];
+
+/* install */
+
+self.addEventListener("install", event => {
+
+event.waitUntil(
+
+caches.open(CACHE_NAME)
+.then(cache => cache.addAll(CORE_ASSETS))
+.then(() => self.skipWaiting())
+
+);
 
 });
 
-self.addEventListener("activate", e => {
+/* activate */
 
-e.waitUntil(
+self.addEventListener("activate", event => {
 
-caches.keys().then(keys =>
-Promise.all(keys.map(k => caches.delete(k)))
-)
+event.waitUntil(
+
+caches.keys().then(keys => {
+
+return Promise.all(
+
+keys
+.filter(key => key !== CACHE_NAME)
+.map(key => caches.delete(key))
+
+);
+
+})
 
 );
 
 self.clients.claim();
 
 });
+
+/* fetch */
 
 self.addEventListener("fetch", event => {
 
@@ -28,11 +61,13 @@ event.respondWith(
 
 caches.match(event.request).then(cache => {
 
-return cache || fetch(event.request).then(response => {
+if(cache) return cache;
+
+return fetch(event.request).then(response => {
 
 const clone = response.clone();
 
-caches.open(CACHE).then(c => c.put(event.request, clone));
+caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
 
 return response;
 

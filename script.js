@@ -1,55 +1,33 @@
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", function(){
 
 const form = document.getElementById("anagramForm");
 const input = document.querySelector("input[name='letters']");
 const results = document.getElementById("results");
-const statusLine = document.getElementById("statusLine");
+const status = document.getElementById("statusLine");
 
 let dictionary = [];
+let dictionaryLoaded = false;
 
-/* Load dictionary */
+/* ---------- frequency calculator ---------- */
 
-try {
+function freq(word){
 
-const response = await fetch("/static/dictionary.txt");
-const text = await response.text();
-
-dictionary = text
-.split(/\r?\n/)
-.map(w => w.trim())
-.filter(w => w.length > 0);
-
-console.log("Dictionary loaded:", dictionary.length);
-
-} catch(err) {
-
-console.error("Dictionary failed to load", err);
-
-}
-
-/* Frequency calculator */
-
-function frequency(word){
-
-const freq = new Array(26).fill(0);
-
+const f = new Array(26).fill(0);
 word = word.toUpperCase();
 
 for(let i=0;i<word.length;i++){
 
-const code = word.charCodeAt(i) - 65;
+const c = word.charCodeAt(i) - 65;
 
-if(code >= 0 && code < 26){
-freq[code]++;
-}
+if(c >= 0 && c < 26) f[c]++;
 
 }
 
-return freq;
+return f;
 
 }
 
-/* Check if word can be built */
+/* ---------- check if letters can form word ---------- */
 
 function canForm(userFreq, wordFreq){
 
@@ -63,45 +41,81 @@ return true;
 
 }
 
-/* Submit event */
+/* ---------- load dictionary (with precomputed frequencies) ---------- */
+
+async function loadDictionary(){
+
+try{
+
+const r = await fetch("/static/dictionary.txt");
+
+if(!r.ok) throw new Error("Dictionary fetch failed");
+
+const t = await r.text();
+
+dictionary = t.split(/\r?\n/)
+.map(w => w.trim())
+.filter(w => w.length > 0)
+.map(word => ({
+word: word,
+freq: freq(word)
+}));
+
+dictionaryLoaded = true;
+
+console.log("Dictionary loaded:", dictionary.length);
+
+}
+catch(e){
+
+console.error("Dictionary failed:", e);
+status.textContent = "Dictionary failed to load";
+
+}
+
+}
+
+loadDictionary();
+
+/* ---------- form submit ---------- */
 
 form.addEventListener("submit", function(e){
 
 e.preventDefault();
 
-const letters = input.value.replace(/\s/g,"");
+if(!dictionaryLoaded){
 
-const userFreq = frequency(letters);
+status.textContent = "Loading dictionary...";
+return;
+
+}
+
+const letters = input.value.replace(/\s/g,"");
+const userFreq = freq(letters);
 
 let matches = [];
 
-/* Scan dictionary */
+/* scan dictionary */
 
 for(let i=0;i<dictionary.length;i++){
 
-const word = dictionary[i];
+const entry = dictionary[i];
 
-const wordFreq = frequency(word);
-
-if(canForm(userFreq, wordFreq)){
-matches.push(word);
-}
+if(canForm(userFreq, entry.freq)) matches.push(entry.word);
 
 }
 
-/* Python-style sort */
+/* python-style sort */
 
 matches.sort(function(a,b){
 
-if(a.length !== b.length){
-return a.length - b.length;
-}
+if(a.length !== b.length) return a.length - b.length;
 
 for(let i=0;i<Math.min(a.length,b.length);i++){
 
-const diff = a.charCodeAt(i) - b.charCodeAt(i);
+const d = a.charCodeAt(i) - b.charCodeAt(i);
 
-if(diff !== 0) return diff;
+if(d !== 0) return d;
 
 }
 
@@ -109,7 +123,7 @@ return 0;
 
 });
 
-/* Render */
+/* render */
 
 results.innerHTML = "";
 
@@ -119,6 +133,7 @@ const div = document.createElement("div");
 div.className = "anagram-word";
 
 const link = document.createElement("a");
+
 link.href = "#";
 link.textContent = " " + matches[i] + " ";
 
@@ -127,7 +142,7 @@ results.appendChild(div);
 
 }
 
-statusLine.textContent =
+status.textContent =
 matches.length + " words in '" + letters.toUpperCase() + "'";
 
 });
