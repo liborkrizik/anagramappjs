@@ -2,26 +2,27 @@
 <html lang="en-us">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>🔥💣Liborova Krížikova Anagramová Appka💣🔥</title>
 
-<meta name="theme-color" content="#181a1b">
+<link rel="manifest" href="/manifest.json">
 
+<meta name="theme-color" content="#181a1b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/static/icon-192.png">
 
-<link rel="icon" type="image/png" href="/static/favicon-96x96.png">
-<link rel="shortcut icon" href="/static/favicon.ico">
-<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-
-<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/static/icon-192.png">
 
 <style>
+
+body{
+font-family:Arial,Helvetica;
+}
 
 .logo-container img{
 transition:transform .3s ease;
 }
+
 .logo-container img:hover{
 transform:scale(1.1);
 }
@@ -90,10 +91,6 @@ transform:translateX(26px);
 background:#6bbf7e;
 }
 
-body{
-font-family:Arial,Helvetica;
-}
-
 form{
 margin-top:32px;
 }
@@ -110,16 +107,17 @@ h2{
 font-size:1.5em;
 }
 
-/* EXACT layout preserved */
+/* STABLE GRID (same appearance) */
+
 .anagram-list{
-display:flex;
-justify-content:space-between;
-flex-wrap:wrap;
+display:grid;
+grid-template-columns:repeat(24,50px);
+column-gap:100px;
+row-gap:2px;
 width:1600px;
 }
 
 .anagram-word{
-margin-right:100px;
 width:50px;
 line-height:1.5;
 }
@@ -167,7 +165,7 @@ style="max-width:100%;height:auto;max-height:200px;">
 <input type="submit" value="Anagram">
 </form>
 
-<h4 id="statusLine"></h4>
+<h4 id="stats"></h4>
 
 </font>
 
@@ -176,39 +174,51 @@ style="max-width:100%;height:auto;max-height:200px;">
 <script src="/script.js"></script>
 
 <script>
+
 document.addEventListener("DOMContentLoaded",function(){
 
 const darkModeSwitch=document.getElementById("darkModeSwitch");
 
 function loadDarkReader(cb){
+
 if(typeof DarkReader!=="undefined") return cb();
+
 const s=document.createElement("script");
 s.src="/static/js/darkreader.min.js";
 s.onload=cb;
+
 document.head.appendChild(s);
+
 }
 
 function enableDarkMode(){
+
 loadDarkReader(()=>{
 DarkReader.enable({brightness:90,contrast:100,sepia:5});
 localStorage.setItem("darkMode","enabled");
 darkModeSwitch.checked=true;
 });
+
 }
 
 function disableDarkMode(){
+
 if(typeof DarkReader!=="undefined") DarkReader.disable();
 localStorage.setItem("darkMode","disabled");
 darkModeSwitch.checked=false;
+
 }
 
 if(localStorage.getItem("darkMode")==="enabled") enableDarkMode();
 
 darkModeSwitch.addEventListener("change",function(){
+
 this.checked?enableDarkMode():disableDarkMode();
+
 });
 
 });
+
 </script>
 
 <script>
